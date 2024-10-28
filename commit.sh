@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Display the initial calling message
+echo "~Calling Borne Raptor..."
+
+# Display the version message
+echo "~Borne Raptor Version1.1"
+
 # Prompt for the commit message
 read -p "Enter your commit message: " COMMIT_MESSAGE
 
@@ -32,9 +38,7 @@ if [ $? -eq 0 ]; then
         GITHUB_ACCOUNT="unknown_account"
     fi
 
-    echo "◖Borne Raptor Version1.1◗"
-
-    # Display ASCII art
+    # Display the ASCII art
     cat << "EOF"
                                                      ___._
                                                    .'  <0>'-.._
@@ -59,12 +63,9 @@ __________                                     | : '. |
                       'c=,
 EOF
 
-    # Display the commit details
-    echo "File(s) committed: {${FILES}}"
-    echo "Repository: {${REPO_NAME}}"
-    echo "GitHub Account: ◖${GITHUB_ACCOUNT}◗"
+    # Display the commit details with square brackets
+    echo "File [$FILES] committed to Repository [$REPO_NAME] at [$GITHUB_ACCOUNT]"
 else
     echo "Error: Commit failed."
     exit 1
 fi
-
