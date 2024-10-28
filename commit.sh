@@ -17,11 +17,26 @@ git commit -m "$COMMIT_MESSAGE"
 
 # Check if the commit was successful
 if [ $? -eq 0 ]; then
-    echo "Commit successful!"
+    # Get the list of files that were committed
+    FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+
+    # Get the current repository URL and extract the repo name and account
+    REPO_URL=$(git config --get remote.origin.url)
+    
+    if [[ $REPO_URL == *"github.com"* ]]; then
+        # Extract GitHub account and repository name from URL
+        REPO_NAME=$(basename -s .git "$REPO_URL")
+        GITHUB_ACCOUNT=$(basename "$(dirname "$REPO_URL")")
+    else
+        REPO_NAME="unknown_repo"
+        GITHUB_ACCOUNT="unknown_account"
+    fi
+
+    echo "◖Borne Raptor Version1.1◗"
 
     # Display ASCII art
     cat << "EOF"
-___._
+                                                     ___._
                                                    .'  <0>'-.._
                                                   /  /.--.____")
                                                  |   \   __.-'~
@@ -32,19 +47,22 @@ __________                                     | : '. |
         '--.__            `'----/       '-.      __ :/
               '-.___           :           \   .'  )/
                     '---._           _.-'   ] /  _/
-                         '-._      _/     _/ / _/
-                             \_ .-'____.-'__< |  \___
+ ~Commiting Files...     '-._      _/     _/ / _/
+ ~Commit Success.             \_ .-'____.-'__< |  \___
                                <_______.\    \_\_---.7
                               |   /'=r_.-'     _\\ =/
-                          .--'   /            ._/' >
+ ~Borne BashScripts~      .--'   /            ._/' >
                         .'   _.-'
-   Borne               / .--'
+                       / .--'
                       /,/
                       |/`)
                       'c=,
 EOF
 
-    echo "Bash script executed successfully with 0 errors."
+    # Display the commit details
+    echo "File(s) committed: {${FILES}}"
+    echo "Repository: {${REPO_NAME}}"
+    echo "GitHub Account: ◖${GITHUB_ACCOUNT}◗"
 else
     echo "Error: Commit failed."
     exit 1
