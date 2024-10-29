@@ -25,10 +25,16 @@ encrypt_token() {
 
 decrypt_token() {
     if [ -f .github_token ]; then
-        GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS")
+        GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
+        if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
+            echo "ERROR: Failed to decrypt the token. It may be corrupted or the wrong password was used."
+            echo "Please re-enter your GitHub token."
+            return 1  # Indicate failure
+        fi
     else
         GITHUB_TOKEN=""
     fi
+    return 0  # Indicate success
 }
 
 setup_gitignore() {
@@ -45,15 +51,22 @@ echo "~ BORNE RAPTOR VERSION 1.1"
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Check if token file exists and decrypt it
+# Ensure .gitignore is set up
 setup_gitignore
+
+# Attempt to decrypt the token
 decrypt_token
 
-# Check if token is valid
-if [ -z "$GITHUB_TOKEN" ]; then
-    read -p "ENTER YOUR GITHUB TOKEN (leave blank to skip authorization check): " GITHUB_TOKEN
+# Check if token was decrypted successfully
+if [ $? -ne 0 ]; then
+    # Prompt for GitHub token if decryption failed
+    read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
+    echo ""  # Move to the next line after silent input
     if [ -n "$GITHUB_TOKEN" ]; then
         encrypt_token "$GITHUB_TOKEN"
+    else
+        echo "ERROR: No token entered. Exiting."
+        exit 1
     fi
 fi
 
