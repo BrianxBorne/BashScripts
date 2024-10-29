@@ -93,7 +93,7 @@ if ! git diff-index --quiet HEAD --; then
     check_commits
 
     # List the committed files
-    COMMITTED_FILES=$(git diff --name-only)
+    COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
 
     cat << "EOF"
                                                      ___._ 
