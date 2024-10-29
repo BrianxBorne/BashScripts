@@ -92,6 +92,7 @@ if ! git diff-index --quiet HEAD --; then
     commit_changes
     check_commits
 
+    # List the committed files
     COMMITTED_FILES=$(git diff --name-only)
 
     cat << "EOF"
@@ -117,10 +118,11 @@ __________                                     | : '. |
                       'c=, 
 EOF
 
-    if [ -z "$COMMITTED_FILES" ]; then
-        echo -e "\nNO FILES WERE COMMITTED.\n"
-    else
+    # Display the committed files information
+    if [ -n "$COMMITTED_FILES" ]; then
         echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
+    else
+        echo -e "\nNO FILES WERE COMMITTED.\n"
     fi
 else
     echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
