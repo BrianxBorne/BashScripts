@@ -108,6 +108,17 @@ if ! cd "$TARGET_DIR"; then
     exit 1
 fi
 
+# Check if the token is valid and print a message about the token's status
+TOKEN_VALIDATION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/rate_limit")
+TOKEN_EXPIRED=false
+
+if [[ $(echo "$TOKEN_VALIDATION" | jq '.rate.reset') -lt $(date +%s) ]]; then
+    TOKEN_EXPIRED=true
+    echo "WARNING: The provided token is expired."
+else
+    echo "Token is valid. The deadline of the token will need to be managed manually."
+fi
+
 if ! git diff-index --quiet HEAD --; then
     echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
 
