@@ -1,5 +1,21 @@
-
 #!/bin/bash
+
+# Check for required tools
+for cmd in curl jq git; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "ERROR: Required tool '$cmd' is not installed."
+        exit 1
+    fi
+done
+
+# Check if inside a Git repository
+if ! git rev-parse --is-inside-work-tree &> /dev/null; then
+    echo "ERROR: This script must be run inside a Git repository."
+    exit 1
+fi
+
+# Get the current branch dynamically
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 check_commits() {
     REPO_NAME=$(basename "$PWD")
@@ -16,8 +32,8 @@ check_commits() {
 commit_changes() {
     echo "~ COMMITTING FILES..."
     git add .
-    git commit -m "$commit_message"
-    git push origin main
+    git commit -m "$commit_message" || { echo "ERROR: Commit failed."; exit 1; }
+    git push origin "$CURRENT_BRANCH" || { echo "ERROR: Push failed. Check your remote repository settings or authentication."; exit 1; }
     COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
 }
 
@@ -25,17 +41,31 @@ echo "~ BORNE RAPTOR VERSION 1.1"
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
+if [ -z "$GITHUB_USERNAME" ]; then
+    echo "ERROR: GitHub username cannot be empty."
+    exit 1
+fi
+
 TARGET_DIR="${1:-.}"
 
 if ! cd "$TARGET_DIR"; then
-    echo "ERROR: COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
-    echo "PLEASE CHECK IF THE DIRECTORY EXISTS."
+    echo "ERROR: Could not change to directory [$TARGET_DIR]. Please check if the directory exists."
     exit 1
 fi
 
 if ! git diff-index --quiet HEAD --; then
     echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
-    read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
+
+    # Keep prompting for a commit message until it is not empty
+    while true; do
+        read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
+        if [ -n "$commit_message" ]; then
+            break
+        else
+            echo "Commit message cannot be empty. Please enter a valid commit message."
+        fi
+    done
+
     commit_changes
     check_commits
 
@@ -63,7 +93,7 @@ __________                                     | : '. |
 EOF
 
     if [ -z "$COMMITTED_FILES" ]; then
-        echo "\nNO FILES WERE COMMITTED.\n"
+        echo "NO FILES WERE COMMITTED."
     else
         echo "FILE(S):"
         printf "%s\n" "$COMMITTED_FILES"
@@ -71,5 +101,5 @@ EOF
         echo "AT: [$GITHUB_USERNAME]"
     fi
 else
-    echo "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
+    echo "RAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY."
 fi
