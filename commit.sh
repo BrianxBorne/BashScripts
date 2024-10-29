@@ -43,6 +43,9 @@ if ! git diff-index --quiet HEAD --; then
     # Check for commits on GitHub after committing
     check_commits
 
+    # Get the names of committed files
+    COMMITTED_FILES=$(git diff --name-only)
+
     # Display success message and ASCII art
     cat << "EOF"
                                                      ___._
@@ -59,7 +62,7 @@ __________                                     | : '. |
  ~Commit Success.             \_ .-'____.-'__< |  \___
                                <_______.\    \_\_---.7
                               |   /'=r_.-'     _\\ =/
- ~Borne BashScripts~      .--'   /            ._/'>
+ ~Borne BashScripts~      .--'   /            ._/' >
                         .'   _.-'
                        / .--'
                       /,/
@@ -67,8 +70,8 @@ __________                                     | : '. |
                       'c=,
 EOF
 
-    # Display the commit message
-    echo "File [$(git diff --name-only)] committed to Repository [$REPO_NAME] at [$GITHUB_USERNAME]."
+    # Display the commit message and file details on new lines
+    echo -e "File [$COMMITTED_FILES] committed to Repository [$REPO_NAME] at [$GITHUB_USERNAME].\n"
 else
     # No changes detected
     echo "No changes made in the repository."
