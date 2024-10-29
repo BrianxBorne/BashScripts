@@ -50,6 +50,14 @@ remove_gitignore() {
 # Main script starts here
 echo "~ BORNE RAPTOR VERSION 1.1"
 
+# Check if there are changes (both staged and untracked files) before asking for username
+if ! git diff-index --quiet HEAD -- || git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
+    echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
+else
+    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
+    exit 0  # Exit if there are no changes
+fi
+
 # Get the GitHub username
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
@@ -87,14 +95,7 @@ if ! cd "$TARGET_DIR"; then
     exit 1
 fi
 
-# Check for changes (both staged and untracked files)
-if git diff-index --quiet HEAD -- && ! git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
-    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
-    exit 0  # Exit if there are no changes
-fi
-
-# If there are changes, prompt for a commit message and commit changes
-echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
+# Prompt for a commit message and commit changes
 read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
 commit_changes
 check_commits
