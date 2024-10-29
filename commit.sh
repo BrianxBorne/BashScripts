@@ -87,6 +87,11 @@ check_commits
 COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
 
 cat << "EOF"
+
+
+                           ~ THE BORNE RAPTOR ~
+
+
 ~GitHub Commit Bash Script~                          ___._ 
 ~Raptor Version  2.3 ~                             .'  <0>'-.._
 ~Aurthor:BrianxBorne on GITHUB                    /  /.--.____")
@@ -107,6 +112,7 @@ __________                                     | : '. |
                       /,/ 
                       |/`) 
                       'c=, 
+
 EOF
 
 if [ -n "$COMMITTED_FILES" ]; then
