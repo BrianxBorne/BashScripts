@@ -1,63 +1,48 @@
-BashScripts Repository
-Overview
-This repository contains useful Bash scripts for managing Git repositories. It includes:
+# BashScripts
 
-commit.sh: A script designed to automate commits to a GitHub repository while securely managing authentication tokens.
-viewer.sh: A script that allows users to view the tree layout of directories and files within a specified path.
-Features
-commit.sh
-Secure Token Management: Encrypts your GitHub token for secure storage and decrypts it when needed.
-Change Detection: Automatically checks for changes in the local repository before prompting for user input.
-Commit and Push: Simplifies the commit and push process with a single command.
-Customizable Commit Messages: Allows you to specify a commit message for each run.
-Automatic Cleanup: Removes the .gitignore file if it exists to prevent sensitive information from being committed.
-viewer.sh
-Directory Tree Visualization: Displays a tree-like structure of files and directories to easily navigate and understand the repository layout.
-Requirements
-Bash
-Git
-OpenSSL
-jq for JSON parsing
-Installation
-Clone the repository:
+Welcome to the **BashScripts** repository! This repository contains a collection of Bash scripts designed to streamline various tasks.
 
-git clone https://github.com/YourUsername/BashScripts.git
+## Files Included
 
-Navigate to the script directory:
+1. **commit.sh**: This script facilitates the process of committing changes to a GitHub repository. It prompts the user for their GitHub username and token, verifies the credentials, and commits any changes detected in the local repository. If the token is successfully encrypted, it will be stored securely for future use. The script ensures that sensitive information, such as the GitHub token, is handled securely.
 
+2. **viewer.sh**: This script allows users to view the tree layout of directories and files in a specified location. It provides a clear visual representation of the file structure, making it easier to navigate and understand the organization of files.
+
+## Features
+
+- **Secure Token Management**: The `commit.sh` script encrypts and securely stores the GitHub token to prevent unauthorized access.
+- **Automatic Change Detection**: Before prompting for user input, the script checks if there are changes in the repository, ensuring that only relevant changes are committed.
+- **User-Friendly Prompts**: The scripts guide the user through each step with clear prompts and feedback messages.
+
+## Usage
+
+To use the scripts, clone the repository to your local machine:
+
+```bash
+git clone https://github.com/BrianxBorne/BashScripts.git
 cd BashScripts
+```
 
-Ensure the scripts have execution permissions:
+### Running commit.sh
 
-chmod +x commit.sh viewer.sh
+To run the `commit.sh` script, use the following command:
 
-Usage
-commit.sh
-Navigate to your Git repository (if not already done).
-
-Run the script:
-
+```bash
 ./commit.sh
+```
 
-Follow the prompts to enter your GitHub username and token. If you have already saved your token, it will be used automatically.
+### Running viewer.sh
 
-Specify a commit message when prompted.
+To view the directory tree structure, use the following command:
 
-The script will commit any changes and push them to your GitHub repository.
+```bash
+./viewer.sh
+```
 
-viewer.sh
-To view the directory and file layout, run:
+## License
 
-./viewer.sh [path]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Replace [path] with the directory you want to visualize. If no path is provided, it will default to the current directory.
+## Acknowledgments
 
-Important Notes
-The commit.sh script will automatically delete any existing .gitignore file in the repository directory to prevent it from being committed.
-Keep your encryption password secure, as it is used to encrypt and decrypt your GitHub token.
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-Acknowledgments
-Thanks to OpenSSL for providing encryption tools.
-Thanks to jq for helping with JSON parsing in the script.
+Special thanks to the open-source community for their contributions and support in developing these scripts.
