@@ -16,10 +16,6 @@ commit_changes() {
     echo "~ COMMITTING FILES..."
     git add .
     git commit -m "$commit_message"
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Commit failed."
-        exit 1
-    fi
     git push origin main
 }
 
@@ -86,7 +82,8 @@ if ! cd "$TARGET_DIR"; then
     exit 1
 fi
 
-if ! git diff-index --quiet HEAD --; then
+# Check for changes (including untracked files)
+if ! git diff-index --quiet HEAD -- || ! git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
     echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
     read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
     commit_changes
