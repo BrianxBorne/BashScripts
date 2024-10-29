@@ -39,12 +39,25 @@ commit_changes() {
 
 echo "~ BORNE RAPTOR VERSION 1.1"
 
-read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
-
-if [ -z "$GITHUB_USERNAME" ]; then
-    echo "ERROR: GitHub username cannot be empty."
-    exit 1
-fi
+# Loop until a valid GitHub username is provided
+while true; do
+    read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
+    
+    if [ -z "$GITHUB_USERNAME" ]; then
+        echo "ERROR: GitHub username cannot be empty."
+        continue
+    fi
+    
+    # Check if the GitHub username exists
+    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/users/$GITHUB_USERNAME")
+    
+    if [ "$RESPONSE_CODE" -eq 200 ]; then
+        echo "GitHub username verified."
+        break
+    else
+        echo "ERROR: The GitHub username '$GITHUB_USERNAME' does not exist. Please try again."
+    fi
+done
 
 # Resolve the target directory
 TARGET_DIR="${1:-.}"
