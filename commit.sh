@@ -51,8 +51,13 @@ echo "~ BORNE RAPTOR VERSION 1.1"
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Ensure .gitignore is set up
+# Ensure .gitignore is set up and that .github_token is ignored
 setup_gitignore
+
+# Check if .github_token is tracked, remove it from tracking if it is
+if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
+    git rm --cached .github_token
+fi
 
 # Attempt to decrypt the token
 decrypt_token
