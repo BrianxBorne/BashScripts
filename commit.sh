@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Function to check for the latest commit on GitHub
 check_commits() {
     REPO_NAME=$(basename "$PWD")
     LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
@@ -12,6 +13,7 @@ check_commits() {
     fi
 }
 
+# Function to commit changes to GitHub
 commit_changes() {
     echo "~ COMMITTING FILES..."
     git add .
@@ -19,16 +21,17 @@ commit_changes() {
     git push origin main
 }
 
+# Function to encrypt the GitHub token
 encrypt_token() {
     echo -n "$1" | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -out .github_token -pass pass:"$ENCRYPTION_PASS"
 }
 
+# Function to decrypt the GitHub token
 decrypt_token() {
     if [ -f .github_token ]; then
         GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
         if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
             echo "ERROR: Failed to decrypt the token. It may be corrupted or the wrong password was used."
-            echo "Please re-enter your GitHub token."
             return 1  # Indicate failure
         fi
     else
@@ -37,7 +40,8 @@ decrypt_token() {
     return 0  # Indicate success
 }
 
-setup_gitignore() {
+# Function to remove .gitignore if it exists
+remove_gitignore() {
     if [ -f .gitignore ]; then
         rm -f .gitignore  # Delete the .gitignore file if it exists
     fi
@@ -46,10 +50,11 @@ setup_gitignore() {
 # Main script starts here
 echo "~ BORNE RAPTOR VERSION 1.1"
 
+# Get the GitHub username
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
 # Ensure .gitignore is deleted
-setup_gitignore
+remove_gitignore
 
 # Check if .github_token is tracked, remove it from tracking if it is
 if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
@@ -82,17 +87,23 @@ if ! cd "$TARGET_DIR"; then
     exit 1
 fi
 
-# Check for changes (including untracked files)
-if ! git diff-index --quiet HEAD -- || ! git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
-    echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
-    read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
-    commit_changes
-    check_commits
+# Check for changes (both staged and untracked files)
+if git diff-index --quiet HEAD -- && ! git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
+    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
+    exit 0  # Exit if there are no changes
+fi
 
-    # List the committed files
-    COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
+# If there are changes, prompt for a commit message and commit changes
+echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
+read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
+commit_changes
+check_commits
 
-    cat << "EOF"
+# List the committed files
+COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
+
+# Output success message and committed files
+cat << "EOF"
                                                      ___._ 
                                                    .'  <0>'-.._
                                                   /  /.--.____")
@@ -115,12 +126,7 @@ __________                                     | : '. |
                       'c=, 
 EOF
 
-    # Display the committed files information
-    if [ -n "$COMMITTED_FILES" ]; then
-        echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
-    else
-        echo -e "\nNO FILES WERE COMMITTED.\n"
-    fi
-else
-    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
+# Display the committed files information
+if [ -n "$COMMITTED_FILES" ]; then
+    echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
 fi
