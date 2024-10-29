@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check for required tools
-for cmd in curl jq git; do
+for cmd in curl jq git openssl; do
     if ! command -v $cmd &> /dev/null; then
         echo "ERROR: Required tool '$cmd' is not installed."
         exit 1
@@ -25,7 +25,7 @@ check_commits() {
     if [ "$LATEST_COMMIT" == "$LOCAL_COMMIT" ]; then
         echo "COMMITS ARE UP TO DATE ON GITHUB."
     else
-        echo "RAPTOR HAS PUSHED NEW COMMITS TO GITHUB."
+        echo "RAPTOR HAS PUSHED NEW COMMIT TO GITHUB."
     fi
 }
 
@@ -41,12 +41,45 @@ commit_changes() {
     COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
 }
 
+encrypt_token() {
+    echo "$1" | openssl enc -aes-256-cbc -salt -a -pass pass:"$ENCRYPTION_PASSWORD" -out .github_token
+}
+
+decrypt_token() {
+    if [ -f .github_token ]; then
+        DECRYPTED_TOKEN=$(openssl enc -aes-256-cbc -d -a -pass pass:"$ENCRYPTION_PASSWORD" -in .github_token)
+        echo "$DECRYPTED_TOKEN"
+    else
+        echo ""
+    fi
+}
+
+initialize_gitignore() {
+    if [ ! -f .gitignore ]; then
+        touch .gitignore
+    fi
+
+    if ! grep -q ".github_token" .gitignore; then
+        echo ".github_token" >> .gitignore
+    fi
+}
+
 echo "~ BORNE RAPTOR VERSION 1.1"
+
+# Set the encryption password
+ENCRYPTION_PASSWORD="your_secure_password_here"  # Change this to a secure password
+
+# Initialize .gitignore
+initialize_gitignore
+
+# Load stored username and token if available
+stored_username=$(decrypt_token | cut -d ':' -f 1)
+stored_token=$(decrypt_token | cut -d ':' -f 2)
 
 # Loop until a valid GitHub username is provided
 while true; do
     read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
-    
+
     if [ -z "$GITHUB_USERNAME" ]; then
         echo "ERROR: GitHub username cannot be empty."
         continue
@@ -63,32 +96,39 @@ while true; do
     fi
 done
 
-# Loop until a valid GitHub token is provided
-while true; do
-    read -sp "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
-    echo
+# If the stored username matches the input, use the stored token
+if [[ "$GITHUB_USERNAME" == "$stored_username" ]]; then
+    GITHUB_TOKEN="$stored_token"
+    echo "Using stored token for username: $GITHUB_USERNAME."
+else
+    # Loop until a valid GitHub token is provided
+    while true; do
+        read -sp "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
+        echo
 
-    if [ -z "$GITHUB_TOKEN" ]; then
-        echo "ERROR: GitHub token cannot be empty."
-        continue
-    fi
-
-    # Validate the token against the GitHub API for the username
-    TOKEN_RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user")
-    
-    if [ "$TOKEN_RESPONSE_CODE" -eq 200 ]; then
-        # Check if the username matches the token owner
-        USERNAME_FROM_TOKEN=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user" | jq -r '.login')
-        if [ "$USERNAME_FROM_TOKEN" == "$GITHUB_USERNAME" ]; then
-            echo "GitHub token verified for username: $GITHUB_USERNAME."
-            break
-        else
-            echo "ERROR: The provided token does not belong to the username '$GITHUB_USERNAME'."
+        if [ -z "$GITHUB_TOKEN" ]; then
+            echo "ERROR: GitHub token cannot be empty."
+            continue
         fi
-    else
-        echo "ERROR: Invalid GitHub token. Authorization failed."
-    fi
-done
+
+        # Validate the token against the GitHub API for the username
+        TOKEN_RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user")
+
+        if [ "$TOKEN_RESPONSE_CODE" -eq 200 ]; then
+            # Check if the username matches the token owner
+            USERNAME_FROM_TOKEN=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user" | jq -r '.login')
+            if [ "$USERNAME_FROM_TOKEN" == "$GITHUB_USERNAME" ]; then
+                echo "GitHub token verified for username: $GITHUB_USERNAME."
+                encrypt_token "$GITHUB_USERNAME:$GITHUB_TOKEN"
+                break
+            else
+                echo "ERROR: The provided token does not belong to the username '$GITHUB_USERNAME'."
+            fi
+        else
+            echo "ERROR: Invalid GitHub token. Authorization failed."
+        fi
+    done
+fi
 
 # Resolve the target directory
 TARGET_DIR="${1:-.}"
