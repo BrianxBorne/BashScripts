@@ -17,17 +17,15 @@ commit_changes() {
     git add .
     git commit -m "$commit_message"
     git push origin main
+    COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
 }
 
-# Main script starts here
 echo "~ BORNE RAPTOR VERSION 1.1"
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Check if a directory argument was provided
-TARGET_DIR="${1:-.}" # Use current directory if no argument is given
+TARGET_DIR="${1:-.}"
 
-# Change to the target directory
 if ! cd "$TARGET_DIR"; then
     echo "ERROR: COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
     echo "PLEASE CHECK IF THE DIRECTORY EXISTS."
@@ -39,8 +37,6 @@ if ! git diff-index --quiet HEAD --; then
     read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
     commit_changes
     check_commits
-
-    COMMITTED_FILES=$(git diff --name-only)
 
     cat << "EOF"
                                                      ___._
@@ -65,10 +61,10 @@ __________                                     | : '. |
                       'c=,
 EOF
 
- if [ -z "$COMMITTED_FILES" ]; then
+    if [ -z "$COMMITTED_FILES" ]; then
         echo -e "\nNO FILES WERE COMMITTED.\n"
     else
-        echo -e "FILE: [$COMMITTED_FILES]\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
+        echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
     fi
 else
     echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
