@@ -19,7 +19,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 check_commits() {
     REPO_NAME=$(basename "$PWD")
-    LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
+    LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/commits" | jq -r '.[0].sha')
     LOCAL_COMMIT=$(git rev-parse HEAD)
 
     if [ "$LATEST_COMMIT" == "$LOCAL_COMMIT" ]; then
@@ -63,16 +63,32 @@ while true; do
     fi
 done
 
-# Optional: Prompt for GitHub token to validate authorization
-read -sp "ENTER YOUR GITHUB TOKEN (leave blank to skip authorization check): " GITHUB_TOKEN
-echo
-if [ -n "$GITHUB_TOKEN" ]; then
-    TOKEN_RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user")
-    if [ "$TOKEN_RESPONSE_CODE" -ne 200 ]; then
-        echo "ERROR: Invalid GitHub token. Authorization failed."
-        exit 1
+# Loop until a valid GitHub token is provided
+while true; do
+    read -sp "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
+    echo
+
+    if [ -z "$GITHUB_TOKEN" ]; then
+        echo "ERROR: GitHub token cannot be empty."
+        continue
     fi
-fi
+
+    # Validate the token against the GitHub API for the username
+    TOKEN_RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user")
+    
+    if [ "$TOKEN_RESPONSE_CODE" -eq 200 ]; then
+        # Check if the username matches the token owner
+        USERNAME_FROM_TOKEN=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user" | jq -r '.login')
+        if [ "$USERNAME_FROM_TOKEN" == "$GITHUB_USERNAME" ]; then
+            echo "GitHub token verified for username: $GITHUB_USERNAME."
+            break
+        else
+            echo "ERROR: The provided token does not belong to the username '$GITHUB_USERNAME'."
+        fi
+    else
+        echo "ERROR: Invalid GitHub token. Authorization failed."
+    fi
+done
 
 # Resolve the target directory
 TARGET_DIR="${1:-.}"
