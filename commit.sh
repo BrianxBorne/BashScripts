@@ -64,7 +64,9 @@ EOF
     if [ -z "$COMMITTED_FILES" ]; then
         echo -e "\nNO FILES WERE COMMITTED.\n"
     else
-        echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
+        echo -e "FILE(S):\n$COMMITTED_FILES"
+        echo -e "COMMITTED TO REPOSITORY: [$REPO_NAME]"
+        echo -e "AT: [$GITHUB_USERNAME]\n"
     fi
 else
     echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
