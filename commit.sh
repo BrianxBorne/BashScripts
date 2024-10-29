@@ -16,6 +16,10 @@ commit_changes() {
     echo "~ COMMITTING FILES..."
     git add .
     git commit -m "$commit_message"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Commit failed."
+        exit 1
+    fi
     git push origin main
 }
 
