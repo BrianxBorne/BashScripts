@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 check_commits() {
@@ -62,12 +63,13 @@ __________                                     | : '. |
 EOF
 
     if [ -z "$COMMITTED_FILES" ]; then
-        echo -e "\nNO FILES WERE COMMITTED.\n"
+        echo "\nNO FILES WERE COMMITTED.\n"
     else
-        echo -e "FILE(S):$COMMITTED_FILES"\n
-        echo -e "COMMITTED TO REPOSITORY: [$REPO_NAME]"\n
-        echo -e "AT: [$GITHUB_USERNAME]"\n
+        echo "FILE(S):"
+        printf "%s\n" "$COMMITTED_FILES"
+        echo "COMMITTED TO REPOSITORY: [$REPO_NAME]"
+        echo "AT: [$GITHUB_USERNAME]"
     fi
 else
-    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
+    echo "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
 fi
