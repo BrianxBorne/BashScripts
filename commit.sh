@@ -46,8 +46,19 @@ if [ -z "$GITHUB_USERNAME" ]; then
     exit 1
 fi
 
+# Resolve the target directory
 TARGET_DIR="${1:-.}"
 
+# Check if provided directory exists; if not, try $HOME
+if [ ! -d "$TARGET_DIR" ]; then
+    TARGET_DIR="$HOME/$TARGET_DIR"
+    if [ ! -d "$TARGET_DIR" ]; then
+        echo "ERROR: Could not locate directory [$1] in the current or home directories."
+        exit 1
+    fi
+fi
+
+# Change to target directory
 if ! cd "$TARGET_DIR"; then
     echo "ERROR: Could not change to directory [$TARGET_DIR]. Please check if the directory exists."
     exit 1
