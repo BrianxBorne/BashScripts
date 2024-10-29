@@ -13,7 +13,7 @@ check_commits() {
 }
 
 commit_changes() {
-    echo "~ COMMITTING FILES..."
+    echo "~RAPTOR COMMITTING FILES..."
     git add .
     git commit -m "$commit_message"
     git push origin main
@@ -27,7 +27,7 @@ decrypt_token() {
     if [ -f .github_token ]; then
         GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
         if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
-            echo "ERROR: Failed to decrypt the token. It may be corrupted or the wrong password was used."
+            echo "ERROR:Raptor failed to decrypt the token. It may be corrupted or the wrong password was used."
             return 1
         fi
     else
@@ -67,7 +67,7 @@ if [ $? -ne 0 ]; then
     if [ -n "$GITHUB_TOKEN" ]; then
         encrypt_token "$GITHUB_TOKEN"
     else
-        echo "ERROR: No token entered. Exiting."
+        echo "ERROR: No token entered. Exiting Raptor."
         exit 1
     fi
 fi
@@ -75,7 +75,7 @@ fi
 TARGET_DIR="${1:-.}"
 
 if ! cd "$TARGET_DIR"; then
-    echo "ERROR: COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
+    echo "ERROR: RAPTOR COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
     echo "PLEASE CHECK IF THE DIRECTORY EXISTS."
     exit 1
 fi
