@@ -19,7 +19,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 check_commits() {
     REPO_NAME=$(basename "$PWD")
-    LATEST_COMMIT=$(curl -s "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
+    LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
     LOCAL_COMMIT=$(git rev-parse HEAD)
 
     if [ "$LATEST_COMMIT" == "$LOCAL_COMMIT" ]; then
@@ -33,7 +33,11 @@ commit_changes() {
     echo "~ COMMITTING FILES..."
     git add .
     git commit -m "$commit_message" || { echo "ERROR: Commit failed."; exit 1; }
-    git push origin "$CURRENT_BRANCH" || { echo "ERROR: Push failed. Check your remote repository settings or authentication."; exit 1; }
+    git push origin "$CURRENT_BRANCH"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Push failed. Please check your GitHub username, token, and remote repository settings."
+        exit 1
+    fi
     COMMITTED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
 }
 
@@ -58,6 +62,17 @@ while true; do
         echo "ERROR: The GitHub username '$GITHUB_USERNAME' does not exist. Please try again."
     fi
 done
+
+# Optional: Prompt for GitHub token to validate authorization
+read -sp "ENTER YOUR GITHUB TOKEN (leave blank to skip authorization check): " GITHUB_TOKEN
+echo
+if [ -n "$GITHUB_TOKEN" ]; then
+    TOKEN_RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/user")
+    if [ "$TOKEN_RESPONSE_CODE" -ne 200 ]; then
+        echo "ERROR: Invalid GitHub token. Authorization failed."
+        exit 1
+    fi
+fi
 
 # Resolve the target directory
 TARGET_DIR="${1:-.}"
