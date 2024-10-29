@@ -4,7 +4,7 @@ check_commits() {
     REPO_NAME=$(basename "$PWD")
     LATEST_COMMIT=$(curl -s "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
     
-    # Check if the API call was successful
+    
     if [ $? -ne 0 ]; then
         echo -e "\nERROR: FAILED TO FETCH THE LATEST COMMIT FROM GITHUB."
         echo -e "PLEASE CHECK YOUR INTERNET CONNECTION OR VERIFY YOUR GITHUB USERNAME.\n"
@@ -24,7 +24,7 @@ commit_changes() {
     echo -e "\n~COMMITTING FILES...\n"
     git add .
 
-    # Check if 'git add' was successful
+    
     if [ $? -ne 0 ]; then
         echo -e "\nERROR: FAILED TO STAGE CHANGES."
         echo -e "TRY RUNNING: git add .\n"
@@ -33,7 +33,7 @@ commit_changes() {
 
     git commit -m "$commit_message"
     
-    # Check if the commit was successful
+   
     if [ $? -ne 0 ]; then
         echo -e "\nERROR: COMMIT FAILED. PLEASE CHECK FOR ERRORS."
         echo -e "MAKE SURE YOU HAVE CHANGES STAGED TO COMMIT."
@@ -43,7 +43,7 @@ commit_changes() {
 
     git push origin main
     
-    # Check if the push was successful
+   
     if [ $? -ne 0 ]; then
         echo -e "\nERROR: FAILED TO PUSH CHANGES TO GITHUB."
         echo -e "MAKE SURE YOU HAVE PERMISSION TO PUSH TO THE REPOSITORY AND THAT THE REMOTE IS SET UP CORRECTLY."
@@ -54,7 +54,7 @@ commit_changes() {
 
 echo -e "\n~BORNE RAPTOR VERSION 1.1\n"
 
-# Check if jq is installed
+
 if ! command -v jq &> /dev/null; then
     echo -e "\nERROR: jq IS NOT INSTALLED. PLEASE INSTALL jq TO CONTINUE."
     echo -e "ON UBUNTU/DEBIAN, YOU CAN INSTALL IT USING: sudo apt-get install jq"
@@ -64,7 +64,7 @@ fi
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Check if we are in a Git repository
+
 if ! git rev-parse --is-inside-work-tree &> /dev/null; then
     echo -e "\nERROR: NOT A VALID GIT REPOSITORY. PLEASE NAVIGATE TO A GIT REPOSITORY."
     echo -e "MAKE SURE YOU'RE IN THE CORRECT DIRECTORY.\n"
@@ -77,7 +77,7 @@ if ! git diff-index --quiet HEAD --; then
     commit_changes
     check_commits
 
-    # Get the list of committed files
+    
     COMMITTED_FILES=$(git diff --name-only HEAD~1 HEAD)
 
     cat << "EOF"
@@ -103,7 +103,7 @@ __________                                     | : '. |
                       'c=,
 EOF
 
-    # Output committed files
+   
     if [ -z "$COMMITTED_FILES" ]; then
         echo -e "\nNO FILES WERE COMMITTED.\n"
     else
