@@ -38,11 +38,8 @@ decrypt_token() {
 }
 
 setup_gitignore() {
-    if [ ! -f .gitignore ]; then
-        touch .gitignore
-    fi
-    if ! grep -q ".github_token" .gitignore; then
-        echo ".github_token" >> .gitignore
+    if [ -f .gitignore ]; then
+        rm -f .gitignore  # Delete the .gitignore file if it exists
     fi
 }
 
@@ -51,7 +48,7 @@ echo "~ BORNE RAPTOR VERSION 1.1"
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Ensure .gitignore is set up and that .github_token is ignored
+# Ensure .gitignore is deleted
 setup_gitignore
 
 # Check if .github_token is tracked, remove it from tracking if it is
