@@ -8,7 +8,7 @@ check_commits() {
     if [ "$LATEST_COMMIT" == "$LOCAL_COMMIT" ]; then
         echo "Commits are up to date on GitHub."
     else
-        echo "New commits have been pushed to GitHub!"
+        echo "Raptor has pushed New commits to GitHub."
     fi
 }
 
@@ -19,7 +19,6 @@ commit_changes() {
     git push origin main
 }
 
-echo "~Calling Borne Raptor..."
 echo "~Borne Raptor Version1.1"
 
 read -p "Enter your GitHub username: " GITHUB_USERNAME
@@ -57,5 +56,5 @@ EOF
 
     echo -e "File [$COMMITTED_FILES] committed to Repository [$REPO_NAME] at [$GITHUB_USERNAME].\n"
 else
-    echo "No changes made in the repository."
+    echo "Raptor has found No changes made in the repository."
 fi
