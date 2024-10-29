@@ -65,7 +65,11 @@ __________                                     | : '. |
                       'c=,
 EOF
 
-    echo -e "FILE [$COMMITTED_FILES] COMMITTED TO REPOSITORY [$REPO_NAME] AT [$GITHUB_USERNAME].\n"
+ if [ -z "$COMMITTED_FILES" ]; then
+        echo -e "\nNO FILES WERE COMMITTED.\n"
+    else
+        echo -e "FILE: [$COMMITTED_FILES]\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
+    fi
 else
-    echo "RAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY."
+    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
 fi
