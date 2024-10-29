@@ -6,28 +6,28 @@ check_commits() {
     
     # Check if the API call was successful
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to fetch the latest commit from GitHub."
-        echo "Please check your internet connection or verify your GitHub username."
+        echo -e "\nERROR: FAILED TO FETCH THE LATEST COMMIT FROM GITHUB."
+        echo -e "PLEASE CHECK YOUR INTERNET CONNECTION OR VERIFY YOUR GITHUB USERNAME.\n"
         exit 1
     fi
 
     LOCAL_COMMIT=$(git rev-parse HEAD)
 
     if [ "$LATEST_COMMIT" = "$LOCAL_COMMIT" ]; then
-        echo "Commits are up to date on GitHub."
+        echo -e "\nCOMMITS ARE UP TO DATE ON GITHUB.\n"
     else
-        echo "Raptor has pushed new commits to GitHub."
+        echo -e "\nRAPTOR HAS PUSHED NEW COMMITS TO GITHUB.\n"
     fi
 }
 
 commit_changes() {
-    echo "~Committing Files..."
+    echo -e "\n~COMMITTING FILES...\n"
     git add .
 
     # Check if 'git add' was successful
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to stage changes."
-        echo "Try running: git add ."
+        echo -e "\nERROR: FAILED TO STAGE CHANGES."
+        echo -e "TRY RUNNING: git add .\n"
         exit 1
     fi
 
@@ -35,9 +35,9 @@ commit_changes() {
     
     # Check if the commit was successful
     if [ $? -ne 0 ]; then
-        echo "Error: Commit failed. Please check for errors."
-        echo "Make sure you have changes staged to commit."
-        echo "Try running: git commit -m \"your commit message\""
+        echo -e "\nERROR: COMMIT FAILED. PLEASE CHECK FOR ERRORS."
+        echo -e "MAKE SURE YOU HAVE CHANGES STAGED TO COMMIT."
+        echo -e "TRY RUNNING: git commit -m \"YOUR COMMIT MESSAGE\"\n"
         exit 1
     fi
 
@@ -45,39 +45,40 @@ commit_changes() {
     
     # Check if the push was successful
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to push changes to GitHub."
-        echo "Make sure you have permission to push to the repository and that the remote is set up correctly."
-        echo "Try running: git push origin main"
+        echo -e "\nERROR: FAILED TO PUSH CHANGES TO GITHUB."
+        echo -e "MAKE SURE YOU HAVE PERMISSION TO PUSH TO THE REPOSITORY AND THAT THE REMOTE IS SET UP CORRECTLY."
+        echo -e "TRY RUNNING: git push origin main\n"
         exit 1
     fi
 }
 
-echo "~Borne Raptor Version 1.1"
+echo -e "\n~BORNE RAPTOR VERSION 1.1\n"
 
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed. Please install jq to continue."
-    echo "On Ubuntu/Debian, you can install it using: sudo apt-get install jq"
-    echo "On macOS, use: brew install jq"
+    echo -e "\nERROR: jq IS NOT INSTALLED. PLEASE INSTALL jq TO CONTINUE."
+    echo -e "ON UBUNTU/DEBIAN, YOU CAN INSTALL IT USING: sudo apt-get install jq"
+    echo -e "ON MACOS, USE: brew install jq\n"
     exit 1
 fi
 
-read -p "Enter your GitHub username: " GITHUB_USERNAME
+read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
 # Check if we are in a Git repository
 if ! git rev-parse --is-inside-work-tree &> /dev/null; then
-    echo "Error: Not a valid Git repository. Please navigate to a Git repository."
-    echo "Make sure you're in the correct directory."
+    echo -e "\nERROR: NOT A VALID GIT REPOSITORY. PLEASE NAVIGATE TO A GIT REPOSITORY."
+    echo -e "MAKE SURE YOU'RE IN THE CORRECT DIRECTORY.\n"
     exit 1
 fi
 
 if ! git diff-index --quiet HEAD --; then
-    echo "Raptor has detected changes in the repository."
-    read -p "Enter your commit message: " commit_message
+    echo -e "\nRAPTOR HAS DETECTED CHANGES IN THE REPOSITORY.\n"
+    read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
     commit_changes
     check_commits
 
-    COMMITTED_FILES=$(git diff --name-only)
+    # Get the list of committed files
+    COMMITTED_FILES=$(git diff --name-only HEAD~1 HEAD)
 
     cat << "EOF"
                                                      ___._
@@ -91,10 +92,10 @@ __________                                     | : '. |
         '--.__            `'----/       '-.      __ :/
               '-.___           :           \   .'  )/
                     '---._           _.-'   ] /  _/
- ~Commit Success.             \_ .-'____.-'__< |  \___
+ ~COMMIT SUCCESS.             \_ .-'____.-'__< |  \___
                                <_______.\    \_\_---.7
                               |   /'=r_.-'     _\\ =/
- ~Borne BashScripts~      .--'   /            ._/' >
+ ~BORNE BASHSCRIPTS~      .--'   /            ._/' >
                         .'   _.-'
                        / .--'
                       /,/
@@ -102,7 +103,12 @@ __________                                     | : '. |
                       'c=,
 EOF
 
-    echo -e "File [$COMMITTED_FILES] committed to Repository [$REPO_NAME] at [$GITHUB_USERNAME].\n"
+    # Output committed files
+    if [ -z "$COMMITTED_FILES" ]; then
+        echo -e "\nNO FILES WERE COMMITTED.\n"
+    else
+        echo -e "FILE:\n[$COMMITTED_FILES]\nCOMMITTED TO REPOSITORY [$REPO_NAME]\nAT [$GITHUB_USERNAME]\n"
+    fi
 else
-    echo "Raptor has found no changes made in the repository."
+    echo -e "\nRAPTOR HAS FOUND NO CHANGES MADE IN THE REPOSITORY.\n"
 fi
