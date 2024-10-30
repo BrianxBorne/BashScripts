@@ -1,6 +1,10 @@
 #!/bin/bash
 
+# Ensure ENCRYPTION_PASS is set
+ENCRYPTION_PASS="your_encryption_password_here"  # Set your encryption password
+
 check_commits() {
+    # Function to check commits
     REPO_NAME=$(basename "$PWD")
     LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
     LOCAL_COMMIT=$(git rev-parse HEAD)
@@ -13,6 +17,7 @@ check_commits() {
 }
 
 commit_changes() {
+    # Function to commit changes
     echo "~RAPTOR COMMITTING FILES..."
     git add .
 
@@ -34,9 +39,14 @@ encrypt_token() {
 
 decrypt_token() {
     if [ -f .github_token ]; then
+        echo "Attempting to decrypt the token..."
         GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
-        if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
-            echo "ERROR: Failed to decrypt the token. Please check your encryption password or the token file."
+        if [ $? -ne 0 ]; then
+            echo "ERROR: Decryption command failed. Check the encryption password."
+            return 1
+        fi
+        if [ -z "$GITHUB_TOKEN" ]; then
+            echo "ERROR: Decrypted token is empty. The token may be corrupted."
             return 1
         fi
     else
@@ -46,6 +56,7 @@ decrypt_token() {
 }
 
 remove_gitignore() {
+    # Function to remove .gitignore
     if [ -f .gitignore ]; then
         git rm --cached .gitignore  # Untrack .gitignore if it exists
         rm -f .gitignore            # Delete it from the local directory
