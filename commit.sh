@@ -15,10 +15,10 @@ check_commits() {
 commit_changes() {
     echo "~RAPTOR COMMITTING FILES..."
     git add .
-    
+
     # Exclude .gitignore from the commit
     git reset .gitignore
-    
+
     # Check if .github_token is being tracked and ignore it if present
     if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
         git rm --cached .github_token
@@ -61,19 +61,15 @@ else
     exit 0
 fi
 
-read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
-
-remove_gitignore
-
-if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
-    git rm --cached .github_token
-fi
-
-# Attempt to decrypt the token
+# Check if .github_token exists and try to decrypt
 decrypt_token
 
-# If decryption fails, prompt for the GitHub token
-if [ $? -ne 0 ]; then
+# Prompt for GitHub username if token is not set or if it changes
+read -p "ENTER YOUR GITHUB USERNAME: " NEW_GITHUB_USERNAME
+
+if [ "$GITHUB_USERNAME" != "$NEW_GITHUB_USERNAME" ]; then
+    GITHUB_USERNAME="$NEW_GITHUB_USERNAME"
+    # If the username changes, prompt for the token
     read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
     echo ""
     if [ -n "$GITHUB_TOKEN" ]; then
@@ -81,6 +77,18 @@ if [ $? -ne 0 ]; then
     else
         echo "ERROR: No token entered. Exiting Raptor."
         exit 1
+    fi
+else
+    # If the username is the same, check if the token was decrypted
+    if [ -z "$GITHUB_TOKEN" ]; then
+        read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
+        echo ""
+        if [ -n "$GITHUB_TOKEN" ]; then
+            encrypt_token "$GITHUB_TOKEN"
+        else
+            echo "ERROR: No token entered. Exiting Raptor."
+            exit 1
+        fi
     fi
 fi
 
