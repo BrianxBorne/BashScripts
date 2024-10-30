@@ -36,7 +36,7 @@ decrypt_token() {
     if [ -f .github_token ]; then
         GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
         if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
-            echo "ERROR: Raptor failed to decrypt the token. It may be corrupted or the wrong password was used."
+            echo "ERROR: Failed to decrypt the token. Please check your encryption password or the token file."
             return 1
         fi
     else
@@ -69,8 +69,10 @@ if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
     git rm --cached .github_token
 fi
 
+# Attempt to decrypt the token
 decrypt_token
 
+# If decryption fails, prompt for the GitHub token
 if [ $? -ne 0 ]; then
     read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
     echo ""
