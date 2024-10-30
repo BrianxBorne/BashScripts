@@ -80,7 +80,6 @@ if ! cd "$TARGET_DIR"; then
     exit 1
 fi
 
-# Pull checker added
 if ! git pull origin main --no-rebase; then
     echo "ERROR: Failed to pull latest changes. Please resolve any conflicts."
     exit 1
