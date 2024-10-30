@@ -67,7 +67,7 @@ if [ $? -ne 0 ]; then
     if [ -n "$GITHUB_TOKEN" ]; then
         encrypt_token "$GITHUB_TOKEN"
     else
-        echo "ERROR: No token entered. Exiting Raptor."
+        echo "ERROR: No Token Entered. Exiting Raptor."
         exit 1
     fi
 fi
