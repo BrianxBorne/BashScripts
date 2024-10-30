@@ -40,7 +40,8 @@ decrypt_token() {
             return 1
         fi
     else
-        GITHUB_TOKEN=""
+        echo "ERROR: Token file not found. Please enter your GitHub token."
+        return 1
     fi
     return 0
 }
@@ -51,8 +52,13 @@ remove_gitignore() {
     fi
 }
 
+create_gitignore() {
+    echo ".github_token" > .gitignore
+}
+
 echo "~ BORNE RAPTOR VERSION 1.1"
 
+# Check for changes in the repository
 if ! git diff-index --quiet HEAD -- || git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
     echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
 else
@@ -60,16 +66,23 @@ else
     exit 0
 fi
 
+# Read GitHub username
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-remove_gitignore
+# Create .gitignore to exclude the token from commits if it doesn't exist
+if [ ! -f .gitignore ]; then
+    create_gitignore
+fi
 
+# Remove the token from the Git index if it exists
 if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
     git rm --cached .github_token
 fi
 
+# Attempt to decrypt the token
 decrypt_token
 
+# If the decryption failed, prompt the user for a new token
 if [ $? -ne 0 ]; then
     read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
     echo ""
@@ -83,12 +96,14 @@ fi
 
 TARGET_DIR="${1:-.}"
 
+# Change to the target directory
 if ! cd "$TARGET_DIR"; then
     echo "ERROR: RAPTOR COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
     echo "PLEASE CHECK IF THE DIRECTORY EXISTS."
     exit 1
 fi
 
+# Read the commit message
 read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
 commit_changes
 check_commits
