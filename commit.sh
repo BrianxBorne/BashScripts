@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Function to check if required tools are installed
-check_dependencies() {
-    command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is not installed. Exiting."; exit 1; }
-    command -v openssl >/dev/null 2>&1 || { echo "ERROR: openssl is not installed. Exiting."; exit 1; }
-}
-
-# Function to check for the latest commits on GitHub
 check_commits() {
     REPO_NAME=$(basename "$PWD")
     LATEST_COMMIT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/commits" | jq -r '.[0].sha')
@@ -19,52 +12,54 @@ check_commits() {
     fi
 }
 
-# Function to commit changes to the repository
 commit_changes() {
     echo "~RAPTOR COMMITTING FILES..."
-    git add .
-    git commit -m "$commit_message" || { echo "ERROR: Commit failed."; exit 1; }
-    git push origin main || { echo "ERROR: Push failed."; exit 1; }
+    
+    # Stage all changes
+    git add . || { echo "ERROR: Failed to stage changes."; exit 1; }
+    
+    # Commit changes with the provided message
+    git commit -m "$commit_message" || { echo "ERROR: Commit failed. Please check your changes."; exit 1; }
+
+    # Pull the latest changes before pushing
+    if ! git pull origin main --no-rebase; then
+        echo "ERROR: Pull failed. Please resolve any conflicts manually."
+        exit 1
+    fi
+
+    # Attempt to push changes to the remote repository
+    if ! git push origin main; then
+        echo "ERROR: Push failed. Please check your connection and remote branch."
+        exit 1
+    fi
 }
 
-# Function to encrypt the GitHub token
 encrypt_token() {
     echo -n "$1" | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -out .github_token -pass pass:"$ENCRYPTION_PASS"
 }
 
-# Function to decrypt the GitHub token
 decrypt_token() {
     if [ -f .github_token ]; then
         GITHUB_TOKEN=$(openssl enc -d -aes-256-cbc -in .github_token -pbkdf2 -pass pass:"$ENCRYPTION_PASS" 2>/dev/null)
         if [ $? -ne 0 ] || [ -z "$GITHUB_TOKEN" ]; then
-            echo "ERROR: Failed to decrypt the token. It may be corrupted or the wrong password was used."
-            exit 1
+            echo "ERROR: Raptor failed to decrypt the token. It may be corrupted or the wrong password was used."
+            return 1
         fi
     else
-        echo "No token file found, prompting for token."
         GITHUB_TOKEN=""
     fi
+    return 0
 }
 
-# Function to remove the .gitignore file with confirmation
 remove_gitignore() {
     if [ -f .gitignore ]; then
-        read -p "Are you sure you want to remove .gitignore? (y/n) " -n 1 -r
-        echo    # move to a new line
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            rm -f .gitignore
-            echo ".gitignore removed."
-        else
-            echo ".gitignore not removed."
-        fi
+        rm -f .gitignore || { echo "ERROR: Failed to remove .gitignore."; }
     fi
 }
 
-# Main script starts here
 echo "~ BORNE RAPTOR VERSION 1.1"
-check_dependencies
 
-# Check if there are changes in the repository
+# Check for uncommitted changes
 if ! git diff-index --quiet HEAD -- || git ls-files --others --exclude-standard --error-unmatch "$TARGET_DIR" >/dev/null 2>&1; then
     echo "RAPTOR HAS DETECTED CHANGES IN THE REPOSITORY."
 else
@@ -73,18 +68,19 @@ else
 fi
 
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
+
 remove_gitignore
 
-# Remove the cached token if it exists
+# Remove cached .github_token if it exists
 if git ls-files --error-unmatch .github_token >/dev/null 2>&1; then
     git rm --cached .github_token
 fi
 
-# Decrypt the GitHub token
+# Attempt to decrypt the GitHub token
 decrypt_token
 
-# If the token could not be decrypted, prompt for it
-if [ -z "$GITHUB_TOKEN" ]; then
+# Prompt for token if decryption failed
+if [ $? -ne 0 ]; then
     read -s -p "ENTER YOUR GITHUB TOKEN: " GITHUB_TOKEN
     echo ""
     if [ -n "$GITHUB_TOKEN" ]; then
@@ -95,30 +91,38 @@ if [ -z "$GITHUB_TOKEN" ]; then
     fi
 fi
 
+# Set the target directory
 TARGET_DIR="${1:-.}"
 
-# Change to the specified target directory
+# Change to the target directory
 if ! cd "$TARGET_DIR"; then
     echo "ERROR: RAPTOR COULD NOT CHANGE TO DIRECTORY [$TARGET_DIR]."
     echo "PLEASE CHECK IF THE DIRECTORY EXISTS."
     exit 1
 fi
 
+# Get the commit message from the user
 read -p "ENTER YOUR COMMIT MESSAGE: " commit_message
-commit_changes
-check_commits
 
+# Commit the changes
+commit_changes
+
+# Check the status of commits
 COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
 
 cat << "EOF"
+
+
                            ~ THE BORNE RAPTOR ~
+
+
 ~GitHub Commit Bash Script~                          ___._ 
 ~Raptor Version  2.3 ~                             .'  <0>'-.._
-~Author: BrianxBorne on GITHUB                    /  /.--.____")
-~File: 'commit.sh' in Public Repo BashScripts     |   \   __.-'~ 
-~Follow Me ~brian_x_borne~ On X                  |  :  -'/ 
-~Email: brianxborne@gmail.com                   /:.  :.-' 
-__________                                     | : '. | 
+~Author: BrianxBorne on GITHUB                      /  /.--.____")
+~File: 'commit.sh' in Public Repo BashScripts      |   \   __.-'~ 
+~Follow Me ~brian_x_borne~ On X                    |  :  -'/ 
+~Email: brianxborne@gmail.com                       /:.  :.-' 
+__________                                         | : '. | 
 '--.____  '--------.______       _.----.-----./      :/ 
         '--.__            `'----/       '-.      __ :/ 
               '-.___           :           \   .'  )/ 
@@ -132,9 +136,10 @@ __________                                     | : '. |
                       /,/ 
                       |/`) 
                       'c=, 
+
 EOF
 
-# Display committed files if any
+# Display the committed files
 if [ -n "$COMMITTED_FILES" ]; then
     echo -e "FILE(S):\n$COMMITTED_FILES\nCOMMITTED TO REPOSITORY: [$REPO_NAME]\nAT: [$GITHUB_USERNAME]\n"
 fi
