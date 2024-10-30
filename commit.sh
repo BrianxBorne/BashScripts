@@ -46,14 +46,15 @@ decrypt_token() {
     return 0
 }
 
+create_gitignore() {
+    echo ".github_token" > .gitignore
+    echo ".gitignore created to ensure sensitive files are not tracked."
+}
+
 remove_gitignore() {
     if [ -f .gitignore ]; then
         rm -f .gitignore
     fi
-}
-
-create_gitignore() {
-    echo ".github_token" > .gitignore
 }
 
 echo "~ BORNE RAPTOR VERSION 1.1"
@@ -69,7 +70,7 @@ fi
 # Read GitHub username
 read -p "ENTER YOUR GITHUB USERNAME: " GITHUB_USERNAME
 
-# Create .gitignore to exclude the token from commits if it doesn't exist
+# Check if .gitignore already exists; if not, create it
 if [ ! -f .gitignore ]; then
     create_gitignore
 fi
@@ -109,6 +110,9 @@ commit_changes
 check_commits
 
 COMMITTED_FILES=$(git diff --name-only HEAD^ HEAD)
+
+# Security: Remove the .github_token after its use
+remove_gitignore
 
 cat << "EOF"
 
