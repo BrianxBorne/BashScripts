@@ -95,7 +95,7 @@ cat << "EOF"
 ~GitHub Commit Bash Script~                          ___._ 
 ~Raptor Version  2.3 ~                             .'  <0>'-.._
 ~Aurthor:BrianxBorne on GITHUB                    /  /.--.____")
-~File 'commit.sh' in Public Repo BashScripts     |   \   __.-'~ 
+~File:'commit.sh' in Public Repo BashScripts     |   \   __.-'~ 
 ~Follow Me ~brian_x_borne~ On X                  |  :  -'/ 
 ~Email: brianxborne@gmail.com                   /:.  :.-' 
 __________                                     | : '. | 
