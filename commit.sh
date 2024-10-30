@@ -97,7 +97,7 @@ cat << "EOF"
 ~Aurthor:BrianxBorne on GITHUB                    /  /.--.____")
 ~File 'commit.sh' in Public Repo BashScripts     |   \   __.-'~ 
 ~Follow Me ~brian_x_borne~ On X                  |  :  -'/ 
-~Email:brianxborne@gmail.com                    /:.  :.-' 
+~Email: brianxborne@gmail.com                   /:.  :.-' 
 __________                                     | : '. | 
 '--.____  '--------.______       _.----.-----./      :/ 
         '--.__            `'----/       '-.      __ :/ 
